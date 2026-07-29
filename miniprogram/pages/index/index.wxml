@@ -1,0 +1,135 @@
+<view class="page">
+  <view class="hero">
+    <view>
+      <view class="brand-row">
+        <image class="brand-image" src="../../imgs/kankan-brand-small.jpg" mode="aspectFill" />
+        <view>
+          <view class="brand">KanKan</view>
+          <view class="tagline">文件语法检查与语气改写助手</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="tabs">
+    <view class="tab {{activeTab == 'upload' ? 'tab-active' : ''}}" data-tab="upload" bindtap="switchTab">上传文件</view>
+    <view class="tab {{activeTab == 'settings' ? 'tab-active' : ''}}" data-tab="settings" bindtap="switchTab">参数设置</view>
+  </view>
+
+  <view wx:if="{{activeTab == 'upload'}}" class="panel">
+    <view class="upload-card" bindtap="chooseFile">
+      <view class="upload-icon">↑</view>
+      <view class="upload-title">{{fileName || '点击上传文件'}}</view>
+      <view class="upload-meta">{{fileMeta || '支持 pdf、doc、docx、txt、rtf、wps、ppt、xls、csv'}}</view>
+      <view class="upload-action">选择文件</view>
+    </view>
+
+    <view class="input-section">
+      <view class="section-head">
+        <view class="section-title">粘贴文本</view>
+        <view class="muted">{{draftText.length}}/5000</view>
+      </view>
+      <textarea
+        class="draft-input"
+        maxlength="5000"
+        value="{{draftText}}"
+        placeholder="也可以直接粘贴需要检查的文章内容..."
+        bindinput="onDraftInput"
+      />
+    </view>
+
+    <view class="summary-grid">
+      <view class="summary-item">
+        <view class="summary-label">文件类型</view>
+        <view class="summary-value">{{settings.fileType}}</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-label">目标语言</view>
+        <view class="summary-value">{{languageOptions[settings.languageIndex]}}</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-label">语气对象</view>
+        <view class="summary-value">{{toneOptions[settings.toneIndex]}}</view>
+      </view>
+      <view class="summary-item">
+        <view class="summary-label">术语场景</view>
+        <view class="summary-value">{{termOptions[settings.termIndex]}}</view>
+      </view>
+    </view>
+
+    <button class="primary-button" loading="{{isReviewing}}" disabled="{{isReviewing}}" bindtap="startReview">
+      {{isReviewing ? '正在检查' : '开始检查'}}
+    </button>
+
+    <view wx:if="{{result}}" class="result-card">
+      <view class="section-title">检查结果预览</view>
+      <view class="result-line" wx:for="{{result}}" wx:key="title">
+        <view class="result-title">{{item.title}}</view>
+        <view class="result-text">{{item.text}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="panel">
+    <view class="settings-card">
+      <view class="section-title">文件设置</view>
+      <picker mode="selector" range="{{fileTypeOptions}}" value="{{settings.fileTypeIndex}}" bindchange="onFileTypeChange">
+        <view class="picker-row">
+          <text>文件类型</text>
+          <text>{{fileTypeOptions[settings.fileTypeIndex]}}</text>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{languageOptions}}" value="{{settings.languageIndex}}" bindchange="onLanguageChange">
+        <view class="picker-row">
+          <text>目标语言</text>
+          <text>{{languageOptions[settings.languageIndex]}}</text>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{translateOptions}}" value="{{settings.translateIndex}}" bindchange="onTranslateChange">
+        <view class="picker-row">
+          <text>翻译方向</text>
+          <text>{{translateOptions[settings.translateIndex]}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="settings-card">
+      <view class="section-title">语气与受众</view>
+      <view class="chip-grid">
+        <view wx:for="{{toneOptions}}" wx:key="*this" class="chip {{index == settings.toneIndex ? 'chip-active' : ''}}" data-index="{{index}}" bindtap="selectTone">{{item}}</view>
+      </view>
+      <view class="chip-grid compact">
+        <view wx:for="{{genderOptions}}" wx:key="*this" class="chip {{index == settings.genderIndex ? 'chip-active' : ''}}" data-index="{{index}}" bindtap="selectGender">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="settings-card">
+      <view class="section-title">专业术语填充</view>
+      <view class="chip-grid">
+        <view wx:for="{{termOptions}}" wx:key="*this" class="chip {{index == settings.termIndex ? 'chip-active' : ''}}" data-index="{{index}}" bindtap="selectTerm">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="settings-card">
+      <view class="section-title">检查重点</view>
+      <view class="toggle-row" wx:for="{{checkOptions}}" wx:key="key">
+        <view>
+          <view class="toggle-title">{{item.label}}</view>
+          <view class="toggle-desc">{{item.desc}}</view>
+        </view>
+        <switch checked="{{item.checked}}" data-key="{{item.key}}" bindchange="toggleCheck" color="#6557ff" />
+      </view>
+    </view>
+
+    <button class="primary-button" bindtap="saveSettings">保存设置</button>
+  </view>
+
+  <view class="account-card">
+    <view>
+      <view class="account-title">登录状态</view>
+      <view class="account-desc">{{userInfo ? '已完成微信登录检查，参数会保存在本机。' : '未检测到登录状态，建议登录后继续使用。'}}</view>
+    </view>
+    <button wx:if="{{!userInfo}}" class="account-button" bindtap="handleLogin">微信登录</button>
+    <view wx:else class="account-badge">已登录</view>
+  </view>
+</view>
