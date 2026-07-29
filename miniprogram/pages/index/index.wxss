@@ -45,6 +45,7 @@ page {
 }
 
 .primary-button::after,
+.secondary-button::after,
 .account-button::after {
   border: none;
 }
@@ -314,6 +315,22 @@ page {
   color: #4b5568;
   font-size: 24rpx;
   line-height: 36rpx;
+}
+
+.result-actions {
+  margin-top: 22rpx;
+}
+
+.secondary-button {
+  width: 100%;
+  height: 78rpx;
+  border: 1rpx solid #d9ddff;
+  border-radius: 14rpx;
+  background: #f3f2ff;
+  color: #5646f0;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 78rpx;
 }
 
 .account-card {

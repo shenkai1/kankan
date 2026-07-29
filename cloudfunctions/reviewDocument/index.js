@@ -8,6 +8,18 @@ const OPENAI_URL = "https://api.openai.com/v1/responses";
 exports.main = async (event) => {
   const apiKey = process.env.OPENAI_API_KEY;
 
+  if (process.env.MOCK_OPENAI === "1") {
+    const payload = normalizePayload(event);
+    return {
+      ok: true,
+      data: {
+        summary: "Mock review completed.",
+        issues: ["示例：统一标题标点", "示例：压缩过长句子", "示例：优化表达语气"],
+        rewrittenText: payload.text || "这是一个用于本地测试的改写结果。真实云端运行时请配置 OPENAI_API_KEY。",
+      },
+    };
+  }
+
   if (!apiKey) {
     return {
       ok: false,

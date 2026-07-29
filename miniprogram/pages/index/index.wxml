@@ -67,6 +67,10 @@
         <view class="result-title">{{item.title}}</view>
         <view class="result-text">{{item.text}}</view>
       </view>
+      <view class="result-actions">
+        <button wx:if="{{fileName}}" class="secondary-button" bindtap="downloadResult">下载修改文件</button>
+        <button wx:else class="secondary-button" bindtap="copyResult">复制修改文本</button>
+      </view>
     </view>
   </view>
 

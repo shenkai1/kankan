@@ -28,6 +28,7 @@ Page({
     fileMeta: "",
     draftText: "",
     result: null,
+    resultText: "",
     isReviewing: false,
     fileTypeOptions: ["自动识别", "PDF", "Word", "TXT", "RTF", "WPS", "PPT", "Excel", "CSV"],
     languageOptions: ["自动识别", "简体中文", "英文", "日文", "韩文", "法文", "西班牙文"],
@@ -231,18 +232,34 @@ Page({
       return;
     }
 
-    this.setData({ isReviewing: true, result: null });
+    this.setData({ isReviewing: true, result: null, resultText: "" });
 
     try {
       const result = await this.callReviewApi();
-      this.setData({ result });
+      this.setReviewResult(result);
       wx.showToast({ title: "检查完成", icon: "success" });
     } catch (error) {
       wx.showToast({ title: "接口未配置，已生成提示词", icon: "none" });
-      this.setData({ result: this.buildLocalPromptPreview() });
+      this.setReviewResult(this.buildLocalPromptPreview());
     } finally {
       this.setData({ isReviewing: false });
     }
+  },
+
+  setReviewResult(result) {
+    this.setData({
+      result,
+      resultText: this.extractResultText(result),
+    });
+  },
+
+  extractResultText(result) {
+    const rewritten = (result || []).find((item) => item.title === "改写结果");
+    if (rewritten && rewritten.text) {
+      return rewritten.text;
+    }
+
+    return (result || []).map((item) => `${item.title}\n${item.text}`).join("\n\n");
   },
 
   callReviewApi() {
@@ -339,5 +356,49 @@ Page({
         text: payload.prompt,
       },
     ];
+  },
+
+  copyResult() {
+    if (!this.data.resultText) {
+      wx.showToast({ title: "暂无可复制内容", icon: "none" });
+      return;
+    }
+
+    wx.setClipboardData({
+      data: this.data.resultText,
+      success: () => {
+        wx.showToast({ title: "已复制", icon: "success" });
+      },
+    });
+  },
+
+  downloadResult() {
+    if (!this.data.resultText) {
+      wx.showToast({ title: "暂无可下载内容", icon: "none" });
+      return;
+    }
+
+    const fs = wx.getFileSystemManager();
+    const safeName = (this.data.fileName || "kankan-result").replace(/[\\/:*?"<>|]/g, "_");
+    const filePath = `${wx.env.USER_DATA_PATH}/${safeName}-review.txt`;
+
+    fs.writeFile({
+      filePath,
+      data: this.data.resultText,
+      encoding: "utf8",
+      success: () => {
+        wx.openDocument({
+          filePath,
+          fileType: "txt",
+          showMenu: true,
+          fail: () => {
+            wx.showToast({ title: "已保存到本地文件", icon: "success" });
+          },
+        });
+      },
+      fail: () => {
+        wx.showToast({ title: "下载失败", icon: "none" });
+      },
+    });
   },
 });
