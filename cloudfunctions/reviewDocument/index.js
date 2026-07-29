@@ -8,6 +8,17 @@ const OPENAI_URL = "https://api.openai.com/v1/responses";
 exports.main = async (event) => {
   const apiKey = process.env.OPENAI_API_KEY;
 
+  if (process.env.PING_ONLY === "1") {
+    return {
+      ok: true,
+      data: {
+        summary: "reviewDocument health check passed.",
+        issues: [],
+        rewrittenText: "云函数已部署并能正常返回。请将 PING_ONLY 改回 0 后再测试 OpenAI 调用。",
+      },
+    };
+  }
+
   if (process.env.MOCK_OPENAI === "1") {
     const payload = normalizePayload(event);
     return {
@@ -144,17 +155,15 @@ function postJson(url, apiKey, body) {
 }
 
 function buildUserPrompt(payload) {
+  const text = payload.text.slice(0, Number(process.env.MAX_INPUT_CHARS || 3000));
   return [
-    payload.prompt,
+    "请检查并改写下面的文本，返回 JSON：summary、issues、rewrittenText。",
     "",
-    "File information:",
-    JSON.stringify(payload.file),
-    "",
-    "User preferences:",
+    "用户参数:",
     JSON.stringify(payload.preferences),
     "",
-    "Text to review:",
-    payload.text || "The user uploaded a file. If file text is empty, explain that text extraction must be added before full review.",
+    "文本:",
+    text,
   ].join("\n");
 }
 

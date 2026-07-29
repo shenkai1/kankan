@@ -232,6 +232,12 @@ Page({
       return;
     }
 
+    if (this.data.fileName && !this.data.draftText.trim()) {
+      this.setReviewResult(this.buildFileTextMissingResult());
+      wx.showToast({ title: "请先粘贴正文", icon: "none" });
+      return;
+    }
+
     this.setData({ isReviewing: true, result: null, resultText: "" });
 
     try {
@@ -374,6 +380,23 @@ Page({
       {
         title: "当前请求模型",
         text: payload.model,
+      },
+    ];
+  },
+
+  buildFileTextMissingResult() {
+    return [
+      {
+        title: "文件正文未解析",
+        text: "已识别到你上传了文件，但当前版本还没有把 PDF、Word 或 TXT 的正文内容传给云函数。",
+      },
+      {
+        title: "下一步操作",
+        text: "请先把文件正文复制到“粘贴文本”输入框后再点击开始检查。这样可以立即测试 OpenAI 改写接口是否正常。",
+      },
+      {
+        title: "后续模块",
+        text: "如果要直接处理上传文件，需要增加“上传到云存储 + 云端解析 PDF/Word/TXT 正文 + 再提交 OpenAI”的文件解析模块。",
       },
     ];
   },
