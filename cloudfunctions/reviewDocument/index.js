@@ -29,9 +29,21 @@ exports.main = async (event) => {
 
   const payload = normalizePayload(event);
 
+  if (!payload.text.trim()) {
+    return {
+      ok: true,
+      data: {
+        summary: "已收到文件，但暂未收到可检查的正文内容。",
+        issues: ["当前版本还没有接入 PDF/Word/TXT 正文解析。", "请先把正文粘贴到文本框，或后续接入云端文件解析模块。"],
+        rewrittenText: "文件已上传，但云函数目前只收到文件名和格式信息，未收到文件正文。请粘贴正文后重新检查，或接入文件解析模块后再直接处理上传文件。",
+      },
+    };
+  }
+
   try {
     const data = await postJson(OPENAI_URL, apiKey, {
       model: payload.model,
+      max_output_tokens: 900,
       input: [
         {
           role: "system",
@@ -96,6 +108,7 @@ function normalizePayload(event) {
 
 function postJson(url, apiKey, body) {
   return new Promise((resolve, reject) => {
+    const timeoutMs = Number(process.env.OPENAI_TIMEOUT_MS || 45000);
     const request = https.request(url, {
       method: "POST",
       headers: {
@@ -122,6 +135,9 @@ function postJson(url, apiKey, body) {
     });
 
     request.on("error", reject);
+    request.setTimeout(timeoutMs, () => {
+      request.destroy(new Error(`OpenAI request timed out after ${timeoutMs / 1000} seconds`));
+    });
     request.write(JSON.stringify(body));
     request.end();
   });

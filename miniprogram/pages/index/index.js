@@ -369,7 +369,7 @@ Page({
       },
       {
         title: "排查建议",
-        text: "请确认 reviewDocument 已部署、超时时间至少 20 秒、环境变量 OPENAI_API_KEY 已保存，并查看云函数日志中的 OpenAI 返回错误。",
+        text: "如果看到 60 秒超时，通常是模型响应太慢、云函数没有及时返回，或上传文件未解析出正文。请确认 reviewDocument 已重新部署、OPENAI_API_KEY 已保存，并优先用粘贴文本测试。",
       },
       {
         title: "当前请求模型",
