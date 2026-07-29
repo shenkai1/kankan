@@ -109,7 +109,7 @@ exports.main = async (event) => {
 
 function normalizePayload(event) {
   return {
-    model: process.env.OPENAI_MODEL || event.model || "gpt-5.6-sol",
+    model: process.env.OPENAI_MODEL || event.model || "gpt-5.5-light",
     file: event.file || {},
     text: event.text || "",
     preferences: event.preferences || {},
@@ -157,7 +157,9 @@ function postJson(url, apiKey, body) {
 function buildUserPrompt(payload) {
   const text = payload.text.slice(0, Number(process.env.MAX_INPUT_CHARS || 3000));
   return [
-    "请检查并改写下面的文本，返回 JSON：summary、issues、rewrittenText。",
+    "你是专业文本润色助手。请按用户参数直接改写文本。",
+    "必须返回 JSON 字符串，字段为 summary、issues、rewrittenText。",
+    "summary 用一句话总结修改；issues 列出最多 3 条问题；rewrittenText 放完整改写结果。",
     "",
     "用户参数:",
     JSON.stringify(payload.preferences),

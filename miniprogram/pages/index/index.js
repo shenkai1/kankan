@@ -1,7 +1,6 @@
 const SETTINGS_KEY = "kankan_settings";
 const USER_KEY = "kankan_user";
-const OPENAI_MODEL = "gpt-5.6-sol";
-const PRODUCT_GOAL = "KanKan aims to provide a fast, polished WeChat mini program for document grammar review, tone rewriting, translation guidance, and professional terminology enhancement while preserving each user's saved preferences.";
+const OPENAI_MODEL = "gpt-5.5-light";
 
 const defaultSettings = {
   fileTypeIndex: 0,
@@ -315,16 +314,16 @@ Page({
   buildReviewPrompt(enabledChecks) {
     const settings = this.data.settings;
     return [
-      "你是 KanKan 的文件语法检查与改写助手。",
-      PRODUCT_GOAL,
-      "请根据用户参数检查并改写文本，返回结构化结果：summary、issues、rewrittenText。",
+      "你是 KanKan 的中文/英文语法检查与语气改写助手。",
+      "任务：按照用户参数直接修改文本，不解释过程。",
+      "输出必须包含：检查摘要、修改建议、改写结果。",
       `目标语言：${this.data.languageOptions[settings.languageIndex]}`,
       `翻译/改写方向：${this.data.translateOptions[settings.translateIndex]}`,
       `语气对象：${this.data.toneOptions[settings.toneIndex]}`,
       `表达性别倾向：${this.data.genderOptions[settings.genderIndex]}`,
       `术语场景：${this.data.termOptions[settings.termIndex]}`,
       `检查重点：${enabledChecks.join("、")}`,
-      "重点处理标题符号、标点、长短句、语序、语法错误和术语准确性。",
+      "重点：修正语法、标点、标题符号、长短句、语序和术语准确性，同时保持原意。",
     ].join("\n");
   },
 
