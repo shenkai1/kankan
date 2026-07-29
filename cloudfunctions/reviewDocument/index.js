@@ -68,6 +68,7 @@ exports.main = async (event) => {
       return {
         ok: false,
         error: (data.body.error && data.body.error.message) || `OpenAI request failed: ${data.statusCode}`,
+        statusCode: data.statusCode,
       };
     }
 
@@ -85,7 +86,7 @@ exports.main = async (event) => {
 
 function normalizePayload(event) {
   return {
-    model: event.model || "gpt-5.6-sol",
+    model: process.env.OPENAI_MODEL || event.model || "gpt-5.6-sol",
     file: event.file || {},
     text: event.text || "",
     preferences: event.preferences || {},

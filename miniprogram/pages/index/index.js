@@ -239,8 +239,8 @@ Page({
       this.setReviewResult(result);
       wx.showToast({ title: "检查完成", icon: "success" });
     } catch (error) {
-      wx.showToast({ title: "接口未配置，已生成提示词", icon: "none" });
-      this.setReviewResult(this.buildLocalPromptPreview());
+      wx.showToast({ title: "检查失败", icon: "none" });
+      this.setReviewResult(this.buildErrorResult(error));
     } finally {
       this.setData({ isReviewing: false });
     }
@@ -354,6 +354,26 @@ Page({
       {
         title: "请求提示词",
         text: payload.prompt,
+      },
+    ];
+  },
+
+  buildErrorResult(error) {
+    const payload = this.buildReviewPayload();
+    const message = (error && error.message) || "未知错误";
+
+    return [
+      {
+        title: "云函数调用失败",
+        text: message,
+      },
+      {
+        title: "排查建议",
+        text: "请确认 reviewDocument 已部署、超时时间至少 20 秒、环境变量 OPENAI_API_KEY 已保存，并查看云函数日志中的 OpenAI 返回错误。",
+      },
+      {
+        title: "当前请求模型",
+        text: payload.model,
       },
     ];
   },
