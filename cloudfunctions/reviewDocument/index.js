@@ -3,7 +3,7 @@ const https = require("https");
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-const OPENAI_URL = "https://api.openai.com/v1/responses";
+const DEFAULT_OPENAI_URL = "https://api.openai.com/v1/responses";
 
 exports.main = async (event) => {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -52,7 +52,7 @@ exports.main = async (event) => {
   }
 
   try {
-    const data = await postJson(OPENAI_URL, apiKey, {
+    const data = await withTimeout(postJson(getOpenAIUrl(), apiKey, {
       model: payload.model,
       max_output_tokens: 900,
       input: [
@@ -85,7 +85,7 @@ exports.main = async (event) => {
           },
         },
       },
-    });
+    }), Number(process.env.OPENAI_TOTAL_TIMEOUT_MS || 20000));
 
     if (data.statusCode < 200 || data.statusCode >= 300) {
       return {
@@ -119,7 +119,7 @@ function normalizePayload(event) {
 
 function postJson(url, apiKey, body) {
   return new Promise((resolve, reject) => {
-    const timeoutMs = Number(process.env.OPENAI_TIMEOUT_MS || 45000);
+    const timeoutMs = Number(process.env.OPENAI_TIMEOUT_MS || 15000);
     const request = https.request(url, {
       method: "POST",
       headers: {
@@ -152,6 +152,26 @@ function postJson(url, apiKey, body) {
     request.write(JSON.stringify(body));
     request.end();
   });
+}
+
+function getOpenAIUrl() {
+  const baseUrl = process.env.OPENAI_BASE_URL;
+  if (!baseUrl) {
+    return DEFAULT_OPENAI_URL;
+  }
+
+  return baseUrl.replace(/\/$/, "") + "/responses";
+}
+
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`OpenAI total timeout after ${timeoutMs / 1000} seconds`));
+      }, timeoutMs);
+    }),
+  ]);
 }
 
 function buildUserPrompt(payload) {
